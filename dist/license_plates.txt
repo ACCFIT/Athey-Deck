@@ -1,0 +1,8 @@
+brett_search,\b281P.F\b,GREEN
+brett_search2,\b281.P.F\b,GREEN
+brianm,\bVB.357\b,YELLOW
+joef,\b.27JBW\b,ORANGE
+flipper,\b75015\b,ORANGE
+natalial,\b366NFY\b,YELLOW
+watchmen,\bKCA9225\b,RED
+jarede,\b043MFM\b,RED
