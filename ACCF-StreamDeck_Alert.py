@@ -71,7 +71,7 @@ key_press = None
 key_press_amount = [0] * 15
 processing_key_press = False #Button pressed flag for delaying multiple key presses
 last_key_press_time = 0
-debounce_interval = 0.8
+debounce_interval = 0.2
 
 bean_counter = 0
 bean_flag = threading.Event()
@@ -180,7 +180,7 @@ def stream_deck_run():
             #Check alarm flags
             if test2.is_set():
                 set_briefcam()
-                briefcam_login() 
+                briefcam_login()
                 deck.set_key_image(7, PILHelper.to_native_key_format(deck, myicon.poi_image_red))
                 while not button_pressed_flag:
                     myicon.set_red_alarm(deck)
@@ -305,7 +305,7 @@ def key_change_callback(deck, key, state):
 
     button_pressed_flag = True
     try:
-        if key == 0 or key == 1 or key == 2 or key == 3 or key == 5:
+        if key == 0 or key == 1 or key == 2 or key == 3 or key == 4 or key == 5 or key == 6 or key == 8 or key == 9:
             set_monitor() #Check which application is in focus before handling button press
             logging.info("Set Monitor")
         if key == 0:
@@ -560,7 +560,7 @@ if __name__ == '__main__':
 
     signal.signal(signal.SIGTERM, handle_signal)
     # Create the icon
-    menu = (item('Add License Plates...', on_license_add), item('About', on_about), item('Restart', on_restart), item('Exit', on_exit))
+    menu = (item('Check for Updates...', None), item('Add License Plates...', on_license_add), item('About', on_about), item('Restart', on_restart), item('Exit', on_exit))
     icon = pystray.Icon("AtheyDeck", Image.open(resource_path('Logo.png')), "ATHEY DECK", menu)
 
     
