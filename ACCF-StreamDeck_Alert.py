@@ -400,17 +400,6 @@ def key_change_callback(deck, key, state):
             keyboard.release(Key.shift)
             keyboard.release(Key.ctrl)
             logging.info("After key AD2 Pressed")
-        elif key == 12:
-            test2.set()
-            button_pressed_flag = False
-            time.sleep(1)
-        elif key == 10:
-            keyboard.press(Key.ctrl)
-            keyboard.press(Key.shift)
-            keyboard.press('-')
-            keyboard.release('-')
-            keyboard.release(Key.shift)
-            keyboard.release(Key.ctrl)
         if timeout() == True:
             logging.error("ERROR - CHECK WEBHOOK ALERTS")
         if bean_counter >= 10:
