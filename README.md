@@ -40,7 +40,7 @@ This is the list of shortcuts already pre-programmed:
 10. ctrl-shift-0 = Key AD2
 
 ## Troubleshooting
-- Close the ACCF-StreamDeck_Alert.exe window and restart the .exe on the respective computer.
+- Close the Athey_Deck.exe window and restart the .exe on the respective computer.
 - A log file is saved under the Documents folder for debugging purposes (Named Athey_Deck.txt).
 
 ## Known Bugs
