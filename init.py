@@ -1,3 +1,6 @@
+# -- Initialization of resources to Stream Deck -- #
+# You can find all resources under Athey-Deck/img
+
 from PIL import Image, ImageOps
 from StreamDeck.ImageHelpers import PILHelper
 import os
@@ -479,6 +482,6 @@ def resource_path(relative_path):
     try:
         base_path = sys._MEIPASS
     except Exception:
-        base_path = os.path.abspath(".") #Use "img/" for terminal. Use "." for release.
+        base_path = os.path.abspath(".") #Use "img/" for terminal testing. Use "." for release version.
 
     return os.path.join(base_path, relative_path)

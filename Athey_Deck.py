@@ -1,7 +1,7 @@
 # Name: Athey Deck
 # Author: Ben Anderson
 # Description: Athey Deck system that integrates with milestone and briefcam to give real-time alerts and user operation.
-# TO CREATE AN .exe run in terminal: pyinstaller ACCF-StreamDeck_Alert.spec
+# TO CREATE AN .exe run this in terminal: pyinstaller Athey_Deck.spec
 
 # -- Imports -- #
 from flask import Flask, request
@@ -32,8 +32,10 @@ from gui import LicensePlateManager
 from init import *
 from PyQt5.QtWidgets import QApplication
 
+#Create initial object for streamdeck control
 myicon = Icon()
 
+#Initialize keyboard control
 keyboard = Controller()
 
 #Get documents folder path
@@ -42,7 +44,7 @@ documents_folder = os.path.join(os.path.expanduser('~'), 'Documents')
 #Set path for logging
 log_file_path = os.path.join(documents_folder, 'AtheyDeck.log')
 
-#Define logging config
+#Define logging configuration
 logging.basicConfig(
     filename=log_file_path,
     level=logging.INFO,
@@ -55,7 +57,8 @@ LOCK_FILE = os.path.join(documents_folder, "AtheyDeck.lock")
 
 app = Flask(__name__) #Start Flask (Flask is used for webhooks)
 
-test2 = threading.Event() #Threading events for alarms
+#Threading events for alarms
+test2 = threading.Event() 
 poi_yellow = threading.Event()
 poi_orange = threading.Event()
 poi_red = threading.Event()
@@ -64,23 +67,24 @@ lpr_orange = threading.Event()
 lpr_red = threading.Event()
 brett = threading.Event()
 
-verify_time = time.time() #Time verification flag for to make sure alerts are working
+verify_time = time.time() #Time verification flag for to make sure alerts are working (This is logged in the log file for reference)
 verify_interval = 1900 
 button_pressed_flag = False #Button pressed flag for when button is pressed the callback function is referenced (key_change_callback())
-key_press = None
-key_press_amount = [0] * 15
+key_press_amount = [0] * 15 #Amount of times the keys are pressed
 processing_key_press = False #Button pressed flag for delaying multiple key presses
 last_key_press_time = 0
 debounce_interval = 0.2
 
-bean_counter = 0
+bean_counter = 0 #Easter egg
 bean_flag = threading.Event()
 bean_time = time.time()
 
-briefcam = threading.Event()
+briefcam = threading.Event() #Future update with separate briefcam thread processing
+briefcam_set = False
 
-fullscreen_flag = False
+fullscreen_flag = False #Check if Briefcam is fullscreen
 
+#Web browser configuration
 options = webdriver.FirefoxOptions()
 options.add_argument("--kiosk")
 options.add_argument("--incognito")
@@ -95,10 +99,13 @@ def webhook_listener():
 
     logging.info("-- Received data from server --")
 
-    if 'TEST2' in data_str: #TEST2 Alarm
-        lpr_orange.set()
+    if 'TEST2' in data_str: #TEST2 Alarm (Testing purposes)
+        test2.set()
         logging.info("TEST2 ALERT")
-    with open("license_plates.txt", "r") as file:
+        
+    #Go through license plate file to check for license plate matching
+    # !!IMPORTANT!! Briefcam does not send license plate severity level, so this needs to be configured within Athey Deck (Setting license plates in Athey Deck AND Briefcam)
+    with open("license_plates.txt", "r") as file: 
         for line in file:
             plate_id, plate_pattern, severity = line.strip().split(",", 2)
             if bool(re.search(plate_pattern, data_str)):
@@ -118,17 +125,19 @@ def webhook_listener():
                     if not lpr_red.is_set():
                         lpr_red.set()
                 logging.info(data_str)
-    if 'YELLOW' in data_str and ('South Entrance Facial D1' in data_str or 'South Entrance Facial D2' in data_str or 'East Entrance Facial' in data_str or 'West Entrance Facial' in data_str): #POI Alarm
+    
+    #Check for Facial recognition alerts
+    if 'YELLOW' in data_str and ('South Entrance Facial D1' in data_str or 'South Entrance Facial D2' in data_str or 'East Entrance Facial' in data_str or 'West Entrance Facial' in data_str or 'PTZ Rear Facial' in data_str): #POI Alarm
         if not poi_yellow.is_set():
             poi_yellow.set()
         logging.info("POI YELLOW ALERT")
         logging.info(data_str)
-    elif 'ORANGE' in data_str and ('South Entrance Facial D1' in data_str or 'South Entrance Facial D2' in data_str or 'East Entrance Facial' in data_str or 'West Entrance Facial' in data_str): #POI Alarm
+    elif 'ORANGE' in data_str and ('South Entrance Facial D1' in data_str or 'South Entrance Facial D2' in data_str or 'East Entrance Facial' in data_str or 'West Entrance Facial' in data_str or 'PTZ Rear Facial' in data_str): #POI Alarm
         if not poi_orange.is_set():
             poi_orange.set()
         logging.info("POI ORANGE ALERT")
         logging.info(data_str)
-    elif 'RED' in data_str and ('South Entrance Facial D1' in data_str or 'South Entrance Facial D2' in data_str or 'East Entrance Facial' in data_str or 'West Entrance Facial' in data_str): #POI Alarm
+    elif 'RED' in data_str and ('South Entrance Facial D1' in data_str or 'South Entrance Facial D2' in data_str or 'East Entrance Facial' in data_str or 'West Entrance Facial' in data_str or 'PTZ Rear Facial' in data_str): #POI Alarm
         if not poi_red.is_set():
             poi_red.set()
         logging.info("POI RED ALERT")
@@ -136,8 +145,8 @@ def webhook_listener():
     elif 'accf-ms-db1.accf.local' in data_str: #Verification packet
         verify_time = time.time()
         logging.info("Verification webhook received.")
-    else:
-        test2.clear() #Clear flags
+    else: #Clear flags
+        test2.clear() 
         poi_yellow.clear()
         poi_orange.clear()
         poi_red.clear()
@@ -145,9 +154,8 @@ def webhook_listener():
         lpr_orange.clear()
         lpr_red.clear()
         brett.clear()
-        logging.warn("** No alerts received from server **")
+        logging.warning("** No alerts received from server **")
         logging.info(data_str)
-    #logging.info(data_str) #Print information received for diagnosis
     data_str = None
     return 'OK'
 
@@ -155,14 +163,12 @@ def webhook_listener():
 def stream_deck_run():
     global button_pressed_flag
     global fullscreen_flag
+    global briefcam_set
     streamdeck = DeviceManager().enumerate() 
     
     for index, deck in enumerate(streamdeck): #Enumerate through all streamdecks (Only 1 right now)
         deck.open()
         deck.reset()
-
-        #Set image path
-        
 
         #Scale images
         myicon.image_init(deck)
@@ -173,19 +179,21 @@ def stream_deck_run():
         #Run key callback function for when a button is pressed
         deck.set_key_callback(key_change_callback) 
         time.sleep(1)
-        #briefcam_login()
+        briefcam_wrapper()
+        driver.get("https://10.100.24.11/app/login") #Initial log in page for web browser
         while 1: #While loop while thread is running
-            # Wait for the event to be set from webhook
-            
+            #Wait for the alarm/event to be set from webhook
             #Check alarm flags
-            if test2.is_set():
-                set_briefcam()
-                briefcam_login()
+            if test2.is_set(): #Testing flag with future update testing
                 deck.set_key_image(7, PILHelper.to_native_key_format(deck, myicon.poi_image_red))
                 while not button_pressed_flag:
                     myicon.set_red_alarm(deck)
+                    if briefcam_set is False:
+                        briefcam_wrapper()
+                        briefcam_set = True
                 myicon.set_keys_normal(deck)
                 test2.clear()
+                briefcam_set = False
             elif lpr_yellow.is_set():
                 set_briefcam()
                 briefcam_login() 
@@ -252,11 +260,7 @@ def stream_deck_run():
             time.sleep(0.05) #Sleep for a bit to reduce processing load
     driver.quit()
 
-def handle_verification_timeout(deck, image):
-    if time.time() - verify_time > verify_interval: #Check to see if timeout and set image if so
-        logging.error("ERROR - CHECK WEBHOOK ALERTS")
-
-def timeout():
+def timeout(): #Check verification packet. Log an error if there is too much time between packets.
     if time.time() - verify_time > verify_interval:
         return True
     else:
@@ -270,10 +274,10 @@ def key_change_callback(deck, key, state):
     global bean_counter
     global bean_flag
     global bean_time
-    global key_press
     global key_press_amount
     
-    if state == True:
+    #Logic for button press feedback
+    if state == True: 
         for i in range(15):
             if key_press_amount[i] == 1:
                 return
@@ -288,14 +292,16 @@ def key_change_callback(deck, key, state):
                 logging.warn("Multiple Keys Pressed, Not registering key press")
                 return
         myicon.key_press_normal(deck, key)
-        
+    
+    #Set current time
     current_time = time.time()
 
+    #Debounce interval for pressing keys to quickly in succession
     if current_time - last_key_press_time < debounce_interval:
         return False
-
     last_key_press_time = current_time
     
+    #Easter egg counter
     if bean_counter == 1:
         bean_time = time.time()
     elif bean_counter >= 1:
@@ -315,7 +321,7 @@ def key_change_callback(deck, key, state):
             keyboard.release('1')
             keyboard.release(Key.shift)
             keyboard.release(Key.ctrl)
-            #pyautogui.hotkey('ctrl', 'shift', '1')
+            #pyautogui.hotkey('ctrl', 'shift', '1') #OLD CODE DEPRECATED (Leaving it here for future possibility of use again)
             logging.info("After key 1 Pressed")
         elif key == 1:
             logging.info("Before key 2 is pressed")
@@ -410,7 +416,7 @@ def key_change_callback(deck, key, state):
     logging.info(key)
     return True
 
-## -- For creation of .exe -- #
+## -- For creation of .exe (Leave this commented out for future testing) -- #
 #def resource_path(relative_path):
 #    try:
 #        base_path = sys._MEIPASS
@@ -435,16 +441,17 @@ def set_monitor():
         logging.error("ERROR receiving milestone window handle: ")
         return False
 
+# -- Setting monitor focus for what application is in focus -- #
 def set_briefcam():
     window_handle = None
     global fullscreen_flag
-    logging.info("Inside briefcam window func")
+    logging.info("Inside briefcam window function")
     try:
         window_handle = win32gui.FindWindowEx(0, window_handle, None, "BriefCam — Mozilla Firefox")
         if window_handle == 0 or window_handle == None:
             window_handle = win32gui.FindWindowEx(0, window_handle, None, "Mozilla Firefox")
             if window_handle == 0 or window_handle == None:
-                logging.error("ERROR receiving briefcam window handle")
+                logging.error("ERROR receiving briefcam window handle. Is Briefcam open?")
                 return False
 
         if window_handle != 0:
@@ -456,31 +463,34 @@ def set_briefcam():
             logging.info("Got briefcam window handle and returning True")
             return True
     except:
-        logging.error("ERROR receiving briefcam window handle: ")
+        logging.error("ERROR receiving briefcam window handle. Is Briefcam open? ")
         return False
 
 # -- Handling exiting of program -- #
 def on_exit():
     driver.quit()
     logging.info("-- Stopping Athey Deck - User Exit --")
-    #icon.stop()
     remove_lock_file()
     os._exit(1)
 
+# -- Handling restarting of program -- #
 def on_restart():
     logging.info("-- Restarting Athey Deck - User Restart --")
     driver.quit()
     os.execl(sys.executable, sys.executable, *sys.argv)
 
+# -- About page of program -- #
 def on_about():
-    ctypes.windll.user32.MessageBoxW(0, 'ATHEY DECK - v1.0', "Info", 0)
+    ctypes.windll.user32.MessageBoxW(0, 'ATHEY DECK - v1.1', "Info", 0)
 
+# -- Handling license plate manager -- #
 def on_license_add():
     app = QApplication(sys.argv)
     window = LicensePlateManager()
     window.show()
     sys.exit(app.exec_())
 
+# -- Lock file for to only keep on instance of program running (not multiple) -- #
 def check_lock_file():
     if os.path.exists(LOCK_FILE): 
         with open(LOCK_FILE, "r") as f:
@@ -492,17 +502,21 @@ def check_lock_file():
             remove_lock_file()
             return True
 
+# -- Create Lock file -- #
 def create_lock_file():
     with open(LOCK_FILE, "w") as f:
         f.write(str(os.getpid()))
         f.close()
 
+# -- Handle exit signals -- #
 def handle_signal(signum, frame):
     os._exit(1)
 
+# -- Remove (delete) lock file -- #
 def remove_lock_file():
     os.remove(LOCK_FILE)
 
+# -- Check to see if browser is running -- #
 def is_browser_running():
     try:
         driver.current_url  # Attempt to access current_url
@@ -510,28 +524,43 @@ def is_browser_running():
     except:
         return False  # Browser is not running
 
+# -- Wrapper function for briefcam to run multiple functions -- #
+def briefcam_wrapper():
+    set_briefcam()
+    briefcam_login()
+
+# -- Briefcam login logic -- #
 def briefcam_login():
+    #Check to see if user is on initial page
     if "10.100.24.11/app/respond/alerts" in driver.current_url:
         return False
 
     logging.info("Got driver")
+    
     # Open the webpage
     driver.get("https://10.100.24.11/app/login")
     logging.info("Opened webpage")
     time.sleep(0.5)
+    
     # Read content
     if "10.100.24.11/app/login" in driver.current_url:
+        
+        #Input information for login
         driver.find_element(By.ID, "userNameField").send_keys(r"accf\SOC")
         driver.find_element(By.ID, 'passwordField').send_keys("GodWithUs!")
         logging.info("Input fields complete")
 
+        #Check checkbox for LDAP
         driver.find_element(By.CLASS_NAME, "PrivateSwitchBase-input").click()
         logging.info('Checked checkbox')
-
+        
+        #Find the element to click "Sign In"
         driver.find_element(By.CLASS_NAME, "jss3").click()
         
         logging.info("Logged in")
         time.sleep(0.8)
+        
+        #Go to Respond page
         driver.get("https://10.100.24.11/app/respond/alerts")
         return True
     else:
@@ -539,31 +568,40 @@ def briefcam_login():
     
 ## -- Main Function -- ##
 if __name__ == '__main__':
+    
+    #Check if program is already running
     if check_lock_file():
         logging.info(" ***INSTANCE OF PROGRAM ALREADY RUNNING, RESTARTING PROGRAM***")
     logging.info("Starting Athey Deck")
     logging.info("Checking for alarms...")
     
+    #Create lock file for program instance checking
     create_lock_file()
 
+    #Handle program signals
     signal.signal(signal.SIGTERM, handle_signal)
-    # Create the icon
+    
+    # Create the taskbar icon
     menu = (item('Check for Updates...', None), item('Add License Plates...', on_license_add), item('About', on_about), item('Restart', on_restart), item('Exit', on_exit))
     icon = pystray.Icon("AtheyDeck", Image.open(resource_path('Logo.png')), "ATHEY DECK", menu)
 
-    
     # Start the webhook app and Stream Deck controller in separate threads
     flask_thread = threading.Thread(target=lambda: serve(app, host='0.0.0.0', port=8096))
     stream_deck_thread = threading.Thread(target=stream_deck_run)
-    #update_thread = threading.Thread(target=update.check_for_updates(current_version))
+    
+    #!UPDATE THREAD NOT CURRENTLY IMPLEMENTED!
+    #update_thread = threading.Thread(target=update.check_for_updates(current_version)) 
 
     # Start the threads
     flask_thread.start()
     stream_deck_thread.start()
+    
     #update_thread.start()
+    
     icon.run()
 
     # Wait for the threads to finish and join them back into one process
     flask_thread.join()
     stream_deck_thread.join()
+    
     #update_thread.join()

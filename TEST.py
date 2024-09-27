@@ -1,3 +1,5 @@
+## -- THIS IS A TEST FILE DO NOT USE -- ##
+
 import sys
 from gui import LicensePlateManager
 from PyQt5.QtWidgets import QApplication
