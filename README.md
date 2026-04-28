@@ -10,8 +10,9 @@ A control panel system that integrates with milestone and briefcam to give real-
 ## Running The .EXE
 1. Download the `Athey_Deck.exe` under the `dist` folder.
 2. Enter the computer's IP address into a webhook on Milestone.
-3. Run the .exe on the respective computer with the Stream Deck connected.
-4. OPTIONAL: Activate a test rule for testing.
+3. Right click on the Milestone EXE, click "Properties". Click "Compatibility" then make sure "Disable Fullscreen Optimizations" in enabled.  
+4. Run the .exe on the respective computer with the Stream Deck connected.
+5. OPTIONAL: Activate a test rule for testing.
 
 ## Creating a New .EXE From Changing The Code
 * Pre-requisites to updating the code
