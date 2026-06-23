@@ -18,6 +18,7 @@ import os
 import win32gui
 import win32api
 import win32con
+import win32process
 import logging
 import pystray
 from pystray import MenuItem as item
@@ -75,9 +76,9 @@ processing_key_press = False #Button pressed flag for delaying multiple key pres
 last_key_press_time = 0
 debounce_interval = 0.2
 
-bean_counter = 0 #Easter egg
-bean_flag = threading.Event()
-bean_time = time.time()
+#bean_counter = 0 #Easter egg
+#bean_flag = threading.Event()
+#bean_time = time.time()
 
 briefcam = threading.Event() #Future update with separate briefcam thread processing
 briefcam_set = False
@@ -127,17 +128,17 @@ def webhook_listener():
                 logging.info(data_str)
     
     #Check for Facial recognition alerts
-    if 'YELLOW' in data_str and ('South Entrance Facial D1' in data_str or 'South Entrance Facial D2' in data_str or 'East Entrance Facial' in data_str or 'West Entrance Facial' in data_str or 'PTZ Rear Facial' in data_str): #POI Alarm
+    if 'YELLOW' in data_str and ('South Entrance Facial D1' in data_str or 'South Entrance Facial D2' in data_str or 'East Entrance Facial' in data_str or 'West Entrance Facial' in data_str or 'Sanctuary Facial' in data_str): #POI Alarm
         if not poi_yellow.is_set():
             poi_yellow.set()
         logging.info("POI YELLOW ALERT")
         logging.info(data_str)
-    elif 'ORANGE' in data_str and ('South Entrance Facial D1' in data_str or 'South Entrance Facial D2' in data_str or 'East Entrance Facial' in data_str or 'West Entrance Facial' in data_str or 'PTZ Rear Facial' in data_str): #POI Alarm
+    elif 'ORANGE' in data_str and ('South Entrance Facial D1' in data_str or 'South Entrance Facial D2' in data_str or 'East Entrance Facial' in data_str or 'West Entrance Facial' in data_str or 'Sanctuary Facial' in data_str): #POI Alarm
         if not poi_orange.is_set():
             poi_orange.set()
         logging.info("POI ORANGE ALERT")
         logging.info(data_str)
-    elif 'RED' in data_str and ('South Entrance Facial D1' in data_str or 'South Entrance Facial D2' in data_str or 'East Entrance Facial' in data_str or 'West Entrance Facial' in data_str or 'PTZ Rear Facial' in data_str): #POI Alarm
+    elif 'RED' in data_str and ('South Entrance Facial D1' in data_str or 'South Entrance Facial D2' in data_str or 'East Entrance Facial' in data_str or 'West Entrance Facial' in data_str or 'Sanctuary Facial' in data_str): #POI Alarm
         if not poi_red.is_set():
             poi_red.set()
         logging.info("POI RED ALERT")
@@ -249,10 +250,10 @@ def stream_deck_run():
                     pass
                 myicon.set_keys_normal(deck)
                 brett.clear()
-            elif bean_flag.is_set():
-                myicon.set_bean_keys(deck)
-                myicon.set_keys_normal(deck)
-                bean_flag.clear()
+            #elif bean_flag.is_set():
+                #myicon.set_bean_keys(deck)
+                #myicon.set_keys_normal(deck)
+                #bean_flag.clear()
             elif briefcam.is_set():
                 briefcam_login()
                 briefcam.clear()
@@ -271,9 +272,9 @@ def key_change_callback(deck, key, state):
     global button_pressed_flag
     global processing_key_press
     global last_key_press_time
-    global bean_counter
-    global bean_flag
-    global bean_time
+    #global bean_counter
+    #global bean_flag
+    #global bean_time
     global key_press_amount
     
     #Logic for button press feedback
@@ -302,15 +303,15 @@ def key_change_callback(deck, key, state):
     last_key_press_time = current_time
     
     #Easter egg counter
-    if bean_counter == 1:
-        bean_time = time.time()
-    elif bean_counter >= 1:
-        if bean_time - time.time() > 60:
-            bean_counter = 0
+    #if bean_counter == 1:
+        #bean_time = time.time()
+    #elif bean_counter >= 1:
+        #if bean_time - time.time() > 60:
+            #bean_counter = 0
 
     button_pressed_flag = True
     try:
-        if key == 0 or key == 1 or key == 2 or key == 3 or key == 4 or key == 5 or key == 6 or key == 8 or key == 9:
+        if key == 0 or key == 1 or key == 2 or key == 3 or key == 4 or key == 5 or key == 6 or key == 8 or key == 9 or key == 10 or key == 11 or key == 12 or key == 13 or key == 14:
             set_monitor() #Check which application is in focus before handling button press
             logging.info("Set Monitor")
         if key == 0:
@@ -386,7 +387,7 @@ def key_change_callback(deck, key, state):
             set_briefcam() 
             briefcam.set()
             logging.info("After Briefcam is pressed")
-            bean_counter += 1
+            #bean_counter += 1
         elif key == 8:
             logging.info("Before key AD1 is pressed")
             keyboard.press(Key.ctrl)
@@ -405,11 +406,56 @@ def key_change_callback(deck, key, state):
             keyboard.release(Key.shift)
             keyboard.release(Key.ctrl)
             logging.info("After key AD2 Pressed")
+        elif key == 10:
+            logging.info("Before key 10 is pressed")
+            keyboard.press(Key.ctrl)
+            keyboard.press(Key.shift)
+            keyboard.press(Key.f1)
+            keyboard.release(Key.f1)
+            keyboard.release(Key.shift)
+            keyboard.release(Key.ctrl)
+            logging.info("After key 10 Pressed")
+        elif key == 11:
+            logging.info("Before key 11 is pressed")
+            keyboard.press(Key.ctrl)
+            keyboard.press(Key.shift)
+            keyboard.press(Key.f2)
+            keyboard.release(Key.f2)
+            keyboard.release(Key.shift)
+            keyboard.release(Key.ctrl)
+            logging.info("After key 11 Pressed")
+        elif key == 12:
+            logging.info("Before key 12 is pressed")
+            keyboard.press(Key.ctrl)
+            keyboard.press(Key.shift)
+            keyboard.press(Key.f3)
+            keyboard.release(Key.f3)
+            keyboard.release(Key.shift)
+            keyboard.release(Key.ctrl)
+            logging.info("After key 12 Pressed")
+        elif key == 13:
+            logging.info("Before key 13 is pressed")
+            keyboard.press(Key.ctrl)
+            keyboard.press(Key.shift)
+            keyboard.press(Key.f4)
+            keyboard.release(Key.f4)
+            keyboard.release(Key.shift)
+            keyboard.release(Key.ctrl)
+            logging.info("After key 13 Pressed")
+        elif key == 14:
+            logging.info("Before key 14 is pressed")
+            keyboard.press(Key.ctrl)
+            keyboard.press(Key.shift)
+            keyboard.press(Key.f5)
+            keyboard.release(Key.f5)
+            keyboard.release(Key.shift)
+            keyboard.release(Key.ctrl)
+            logging.info("After key 14 Pressed")
         if timeout() == True:
             logging.error("ERROR - CHECK WEBHOOK ALERTS")
-        if bean_counter >= 10:
-            bean_flag.set()
-            bean_counter = 0
+        #if bean_counter >= 10:
+            #bean_flag.set()
+            #bean_counter = 0
     except Exception as button_error:
         logging.error("Failed to recieve button press function: ", button_error)
     logging.info("Returning True. Got key press # ")
@@ -440,30 +486,48 @@ def set_monitor():
     except:
         logging.error("ERROR receiving milestone window handle: ")
         return False
+    
+def force_foreground(hwnd):
+    current_thread = win32api.GetCurrentThreadId()
+    target_thread, _ = win32process.GetWindowThreadProcessId(hwnd)
+    
+    win32process.AttachThreadInput(current_thread, target_thread, True)
+    win32gui.BringWindowToTop(hwnd)
+    win32gui.ShowWindow(hwnd, win32con.SW_MAXIMIZE)
+    win32gui.SetForegroundWindow(hwnd)
+    win32process.AttachThreadInput(current_thread, target_thread, False)
 
 # -- Setting monitor focus for what application is in focus -- #
 def set_briefcam():
-    window_handle = None
     global fullscreen_flag
     logging.info("Inside briefcam window function")
+    
+    def find_firefox(hwnd, results):
+        if win32gui.IsWindowVisible(hwnd):
+            title = win32gui.GetWindowText(hwnd)
+            if 'firefox' in title.lower() or 'briefcam' in title.lower():
+                results.append((hwnd, title))
+    
     try:
-        window_handle = win32gui.FindWindowEx(0, window_handle, None, "BriefCam — Mozilla Firefox")
-        if window_handle == 0 or window_handle == None:
-            window_handle = win32gui.FindWindowEx(0, window_handle, None, "Mozilla Firefox")
-            if window_handle == 0 or window_handle == None:
-                logging.error("ERROR receiving briefcam window handle. Is Briefcam open?")
-                return False
-
-        if window_handle != 0:
-            win32gui.ShowWindow(window_handle, win32con.SW_MAXIMIZE)
-            win32gui.SetForegroundWindow(window_handle)
-            if fullscreen_flag is False:
-                pyautogui.press('f11')
-                fullscreen_flag = True
-            logging.info("Got briefcam window handle and returning True")
-            return True
-    except:
-        logging.error("ERROR receiving briefcam window handle. Is Briefcam open? ")
+        results = []
+        win32gui.EnumWindows(find_firefox, results)
+        
+        if not results:
+            logging.error("ERROR receiving briefcam window handle. Is Briefcam open?")
+            return False
+        
+        window_handle, title = results[0]
+        logging.info(f"Found Firefox window: '{title}'")
+        
+        force_foreground(window_handle)
+        if fullscreen_flag is False:
+            pyautogui.press('f11')
+            fullscreen_flag = True
+        
+        logging.info("Got briefcam window handle and returning True")
+        return True
+    except Exception as e:
+        logging.error(f"ERROR receiving briefcam window handle: {e}")
         return False
 
 # -- Handling exiting of program -- #
