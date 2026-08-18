@@ -383,7 +383,7 @@ def set_keys_normal(Icon, deck):
         deck.set_key_image(13, PILHelper.to_native_key_format(deck, Icon.image13))
         deck.set_key_image(14, PILHelper.to_native_key_format(deck, Icon.image14))
         
-    def set_yellow_alarm(Icon, deck):
+def set_yellow_alarm(Icon, deck):
         deck.set_key_image(2, PILHelper.to_native_key_format(deck, Icon.image3_yellow))
         time.sleep(0.04)
         deck.set_key_image(3, PILHelper.to_native_key_format(deck, Icon.image4_yellow))
@@ -438,7 +438,7 @@ def set_keys_normal(Icon, deck):
         time.sleep(0.04)
         deck.set_key_image(1, PILHelper.to_native_key_format(deck, Icon.image2))
 
-    def set_orange_alarm(Icon, deck):
+def set_orange_alarm(Icon, deck):
         deck.set_key_image(2, PILHelper.to_native_key_format(deck, Icon.image3_orange))
         time.sleep(0.04)
         deck.set_key_image(3, PILHelper.to_native_key_format(deck, Icon.image4_orange))
@@ -493,7 +493,7 @@ def set_keys_normal(Icon, deck):
         time.sleep(0.04)
         deck.set_key_image(1, PILHelper.to_native_key_format(deck, Icon.image2))
 
-    def set_red_alarm(Icon, deck):
+def set_red_alarm(Icon, deck):
         deck.set_key_image(2, PILHelper.to_native_key_format(deck, Icon.image3_alert))
         time.sleep(0.04)
         deck.set_key_image(3, PILHelper.to_native_key_format(deck, Icon.image4_alert))
@@ -548,7 +548,7 @@ def set_keys_normal(Icon, deck):
         time.sleep(0.04)
         deck.set_key_image(1, PILHelper.to_native_key_format(deck, Icon.image2))
 
-    def set_brett_keys(Icon, deck):
+def set_brett_keys(Icon, deck):
         time.sleep(0.05)
         deck.set_key_image(0, PILHelper.to_native_key_format(deck, Icon.image1_brett)) #SET TO NORMAL
         deck.set_key_image(1, PILHelper.to_native_key_format(deck, Icon.image2_brett))
@@ -568,7 +568,7 @@ def set_keys_normal(Icon, deck):
         time.sleep(1)
     
 
-    def key_press_get(Icon, deck, num):
+def key_press_get(Icon, deck, num):
         if num == 0:
             deck.set_key_image(num, PILHelper.to_native_key_format(deck, Icon.image1_blue))
         elif num == 1:
@@ -600,7 +600,7 @@ def set_keys_normal(Icon, deck):
         elif num == 14:
             deck.set_key_image(num, PILHelper.to_native_key_format(deck, Icon.image14_blue))
 
-    def key_press_normal(Icon, deck, num):
+def key_press_normal(Icon, deck, num):
         if num == 0:
             deck.set_key_image(num, PILHelper.to_native_key_format(deck, Icon.image1))
         elif num == 1:
